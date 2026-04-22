@@ -339,6 +339,21 @@ jobs:
           REAL_BID=$(plutil -extract CFBundleIdentifier raw "$PLIST")
           echo "IPA version: $REAL_VERSION, bundle: $REAL_BID"
 
+          # Compose versionDescription from actual integrations + tweak version
+          INTS=()
+          [ "${{ inputs.enable_youpip }}" = "true" ] && INTS+=("YouPiP")
+          [ "${{ inputs.enable_ytuhd }}"  = "true" ] && INTS+=("YTUHD")
+          [ "${{ inputs.enable_yq }}"     = "true" ] && INTS+=("YouQuality")
+          [ "${{ inputs.enable_ryd }}"    = "true" ] && INTS+=("Return YouTube Dislikes")
+          [ "${{ inputs.enable_demc }}"   = "true" ] && INTS+=("DontEatMyContent")
+          if [ ${#INTS[@]} -eq 0 ]; then
+            INT_LIST="no extra integrations"
+          else
+            INT_LIST=$(IFS=, ; echo "${INTS[*]}" | sed 's/,/, /g')
+          fi
+          DESC="YouTube ${REAL_VERSION} + YTLite v${{ inputs.tweak_version }} (${INT_LIST}). Built ${DATE}."
+          echo "Description: $DESC"
+
           cd ${{ github.workspace }}/main
           jq --arg v "$REAL_VERSION" \
              --arg url "$URL" \
@@ -346,12 +361,14 @@ jobs:
              --argjson size "$SIZE" \
              --arg bid "$REAL_BID" \
              --arg name "${{ inputs.display_name }}" \
+             --arg desc "$DESC" \
              '.apps[0].version = $v
               | .apps[0].downloadURL = $url
               | .apps[0].versionDate = $date
               | .apps[0].size = $size
               | .apps[0].bundleIdentifier = $bid
-              | .apps[0].name = $name' \
+              | .apps[0].name = $name
+              | .apps[0].versionDescription = $desc' \
              apps.json > apps.json.new
           mv apps.json.new apps.json
 
