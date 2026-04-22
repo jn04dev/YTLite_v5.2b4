@@ -54,7 +54,7 @@ on:
 
       bundle_id:
         description: "BundleID (Optional)"
-        default: "com.google.ios.youtube"
+        default: "com.google.ios.youtube.altstore"
         required: true
         type: string
 
@@ -321,8 +321,37 @@ jobs:
           tag_name: ytp-${{ github.run_number }}
           name: YouTubePlus v${{ inputs.tweak_version }} (${{ github.run_number }})
           files: YouTubePlus_${{ inputs.tweak_version }}.ipa
-          draft: true
+          draft: false
+
+      - name: Update apps.json for AltStore source
+        run: |
+          cd ${{ github.workspace }}/main
+          SIZE=$(stat -f%z ${{ github.workspace }}/YouTubePlus_${{ inputs.tweak_version }}.ipa)
+          URL="https://github.com/${{ github.repository }}/releases/download/ytp-${{ github.run_number }}/YouTubePlus_${{ inputs.tweak_version }}.ipa"
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          jq --arg v "${{ inputs.tweak_version }}" \
+             --arg url "$URL" \
+             --arg date "$DATE" \
+             --argjson size "$SIZE" \
+             --arg bid "${{ inputs.bundle_id }}" \
+             --arg name "${{ inputs.display_name }}" \
+             '.apps[0].version = $v
+              | .apps[0].downloadURL = $url
+              | .apps[0].versionDate = $date
+              | .apps[0].size = $size
+              | .apps[0].bundleIdentifier = $bid
+              | .apps[0].name = $name' \
+             apps.json > apps.json.new
+          mv apps.json.new apps.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase
+          git add apps.json
+          git diff --cached --quiet && echo "No apps.json changes" || (git commit -m "Update apps.json for ytp-${{ github.run_number }}" && git push)
 
       - name: Output Release URL
         run: |
-          echo "::notice::Release available at: https://github.com/${{ github.repository }}/releases"
+          echo "::notice::Release available at: https://github.com/${{ github.repository }}/releases/tag/ytp-${{ github.run_number }}"
+          echo "::notice::AltStore source URL: https://raw.githubusercontent.com/${{ github.repository }}/main/apps.json"
