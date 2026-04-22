@@ -148,7 +148,7 @@ jobs:
         with:
           repository: dayanch96/YTLite
           ref: ${{ inputs.tweak_ref }}
-          path: ${{ github.workspace }}/YTLite
+          path: ${{ github.workspace }}/theos/include/YTLite
 
       - name: Clone Open in YouTube (Safari extension)
         run: |
@@ -201,9 +201,24 @@ jobs:
         env:
           THEOS: ${{ github.workspace }}/theos
 
+      - name: Clone protobuf (objectivec headers only)
+        run: |
+          if [ ! -d "$THEOS/include/protobuf/objectivec" ]; then
+            rm -rf "$THEOS/include/protobuf"
+            git clone --quiet -n --depth=1 --filter=tree:0 https://github.com/protocolbuffers/protobuf.git "$THEOS/include/protobuf"
+            cd "$THEOS/include/protobuf"
+            git sparse-checkout set --no-cone objectivec
+            git checkout
+          else
+            echo "protobuf/objectivec already present"
+          fi
+          ls "$THEOS/include/protobuf/objectivec" | head
+        env:
+          THEOS: ${{ github.workspace }}/theos
+
       - name: Build YTLite
         run: |
-          cd ${{ github.workspace }}/YTLite
+          cd "$THEOS/include/YTLite"
           make clean package DEBUG=0 FINALPACKAGE=1 ADDITIONAL_CFLAGS="-DROOTHIDE_USE_STUB"
           mv packages/*.deb ${{ github.workspace }}/ytplus.deb
         env:
