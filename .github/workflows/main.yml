@@ -357,9 +357,13 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git pull --rebase
           git add apps.json
-          git diff --cached --quiet && echo "No apps.json changes" || (git commit -m "Update apps.json for ytp-${{ github.run_number }}" && git push)
+          if git diff --cached --quiet; then
+            echo "No apps.json changes"
+          else
+            git commit -m "Update apps.json for ytp-${{ github.run_number }}"
+            git push || (git pull --rebase --autostash && git push)
+          fi
 
       - name: Output Release URL
         run: |
