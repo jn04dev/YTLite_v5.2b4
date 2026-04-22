@@ -203,16 +203,22 @@ jobs:
 
       - name: Clone protobuf (objectivec headers only)
         run: |
-          if [ ! -d "$THEOS/include/protobuf/objectivec" ]; then
+          # Pinned to the commit used as a submodule by jkhsjdhjs/youtube-native-share.
+          # Later protobuf commits removed GPBUnknownFieldSet.h which YTNativeShare.x still imports.
+          PROTOBUF_REF="b8764f0941a6a5d500c48671716f0de81eb1dcaf"
+          NEED_CLONE=1
+          if [ -f "$THEOS/include/protobuf/objectivec/GPBUnknownFieldSet.h" ]; then
+            NEED_CLONE=0
+            echo "protobuf/objectivec already present with GPBUnknownFieldSet.h"
+          fi
+          if [ "$NEED_CLONE" = "1" ]; then
             rm -rf "$THEOS/include/protobuf"
-            git clone --quiet -n --depth=1 --filter=tree:0 https://github.com/protocolbuffers/protobuf.git "$THEOS/include/protobuf"
+            git clone --quiet -n --filter=tree:0 https://github.com/protocolbuffers/protobuf.git "$THEOS/include/protobuf"
             cd "$THEOS/include/protobuf"
             git sparse-checkout set --no-cone objectivec
-            git checkout
-          else
-            echo "protobuf/objectivec already present"
+            git checkout "$PROTOBUF_REF"
           fi
-          ls "$THEOS/include/protobuf/objectivec" | head
+          ls "$THEOS/include/protobuf/objectivec" | grep -E "GPBUnknownFieldSet|GPBDescriptor|GPBMessage|GPBUnknownField\.h"
         env:
           THEOS: ${{ github.workspace }}/theos
 
