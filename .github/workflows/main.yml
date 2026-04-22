@@ -325,16 +325,26 @@ jobs:
 
       - name: Update apps.json for AltStore source
         run: |
-          cd ${{ github.workspace }}/main
-          SIZE=$(stat -f%z ${{ github.workspace }}/YouTubePlus_${{ inputs.tweak_version }}.ipa)
+          IPA="${{ github.workspace }}/YouTubePlus_${{ inputs.tweak_version }}.ipa"
+          SIZE=$(stat -f%z "$IPA")
           URL="https://github.com/${{ github.repository }}/releases/download/ytp-${{ github.run_number }}/YouTubePlus_${{ inputs.tweak_version }}.ipa"
           DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-          jq --arg v "${{ inputs.tweak_version }}" \
+          # Extract actual version + bundle ID from the IPA's Info.plist
+          # (CFBundleShortVersionString is YouTube's version, not the tweak's)
+          rm -rf /tmp/ipa-extract && mkdir -p /tmp/ipa-extract
+          unzip -q -o "$IPA" 'Payload/*/Info.plist' -d /tmp/ipa-extract
+          PLIST=$(ls /tmp/ipa-extract/Payload/*/Info.plist | head -1)
+          REAL_VERSION=$(plutil -extract CFBundleShortVersionString raw "$PLIST")
+          REAL_BID=$(plutil -extract CFBundleIdentifier raw "$PLIST")
+          echo "IPA version: $REAL_VERSION, bundle: $REAL_BID"
+
+          cd ${{ github.workspace }}/main
+          jq --arg v "$REAL_VERSION" \
              --arg url "$URL" \
              --arg date "$DATE" \
              --argjson size "$SIZE" \
-             --arg bid "${{ inputs.bundle_id }}" \
+             --arg bid "$REAL_BID" \
              --arg name "${{ inputs.display_name }}" \
              '.apps[0].version = $v
               | .apps[0].downloadURL = $url
