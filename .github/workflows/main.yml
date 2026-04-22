@@ -192,10 +192,19 @@ jobs:
         env:
           THEOS: ${{ github.workspace }}/theos
 
+      - name: Install roothide stub headers
+        run: |
+          mkdir -p "$THEOS/include/roothide"
+          curl -fsSL "https://raw.githubusercontent.com/roothide/RootHideManagerApp/main/RootHide/roothide.h" -o "$THEOS/include/roothide.h"
+          curl -fsSL "https://raw.githubusercontent.com/roothide/RootHideManagerApp/main/RootHide/roothide/stub.h" -o "$THEOS/include/roothide/stub.h"
+          ls -la "$THEOS/include/roothide.h" "$THEOS/include/roothide/stub.h"
+        env:
+          THEOS: ${{ github.workspace }}/theos
+
       - name: Build YTLite
         run: |
           cd ${{ github.workspace }}/YTLite
-          make clean package DEBUG=0 FINALPACKAGE=1
+          make clean package DEBUG=0 FINALPACKAGE=1 ADDITIONAL_CFLAGS="-DROOTHIDE_USE_STUB"
           mv packages/*.deb ${{ github.workspace }}/ytplus.deb
         env:
           THEOS: ${{ github.workspace }}/theos
