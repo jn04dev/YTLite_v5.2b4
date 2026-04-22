@@ -225,7 +225,7 @@ jobs:
       - name: Build YTLite
         run: |
           cd "$THEOS/include/YTLite"
-          make clean package DEBUG=0 FINALPACKAGE=1 ADDITIONAL_CFLAGS="-DROOTHIDE_USE_STUB"
+          make clean package DEBUG=0 FINALPACKAGE=1 ADDITIONAL_CFLAGS="-DROOTHIDE_USE_STUB -Wno-deprecated-declarations -Wno-error=deprecated-declarations"
           mv packages/*.deb ${{ github.workspace }}/ytplus.deb
         env:
           THEOS: ${{ github.workspace }}/theos
