@@ -4,17 +4,17 @@
   "sourceURL": "https://raw.githubusercontent.com/jn04dev/YTLite_v5.2b4/main/apps.json",
   "apps": [
     {
-      "name": "YouTube",
+      "name": "YouTube+",
       "bundleIdentifier": "com.google.ios.youtube.altstore",
       "developerName": "Jake (YTLite fork)",
-      "version": "21.14.4",
-      "versionDate": "2026-04-22T21:58:25Z",
-      "versionDescription": "YouTube 21.14.4 + YTLite v5.2o (YouPiP, YouQuality, Return YouTube Dislikes, DontEatMyContent). Built 2026-04-22T21:58:25Z.",
-      "downloadURL": "https://github.com/jn04dev/YTLite_v5.2b4/releases/download/ytp-12/YouTubePlus_5.2o.ipa",
+      "version": "21.15.5",
+      "versionDate": "2026-04-23T21:06:19Z",
+      "versionDescription": "YouTube 21.15.5 + YTLite v5.2o (YouPiP, YouQuality, Return YouTube Dislikes, DontEatMyContent). Built 2026-04-23T21:06:19Z.",
+      "downloadURL": "https://github.com/jn04dev/YTLite_v5.2b4/releases/download/ytp-13/YouTubePlus_5.2o.ipa",
       "localizedDescription": "Enhanced YouTube iOS client: ad blocking, Picture-in-Picture, Return YouTube Dislikes, quality selection, and more. Built from the dayanch96/YTLite project via Jake's YTLite_v5.2b4 fork. Rebuilt periodically as decrypted IPAs refresh.",
       "iconURL": "https://raw.githubusercontent.com/dayanch96/YTLite/main/Icon.png",
       "tintColor": "FF0000",
-      "size": 118906622
+      "size": 119131936
     }
   ],
   "news": []
