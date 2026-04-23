@@ -54,7 +54,7 @@ on:
 
       display_name:
         description: "App Name (Optional)"
-        default: "YouTube"
+        default: "YouTube+"
         required: true
         type: string
 
@@ -191,6 +191,29 @@ jobs:
           fi
         env:
           THEOS: ${{ github.workspace }}/theos
+
+      - name: Patch YTLite Settings.x (always insert YTLite section)
+        run: |
+          # In YT 21.x the value @(1) is no longer present in settingsCategoryOrder,
+          # so [order indexOfObject:@(1)] returns NSNotFound and the YTLite settings
+          # section is silently dropped. Force-insert it at the top as a fallback so
+          # the user can always reach YTLite settings.
+          python3 - <<'PY'
+          import pathlib, re
+          p = pathlib.Path("${{ github.workspace }}/theos/include/YTLite/Settings.x")
+          src = p.read_text()
+          old = ("    NSUInteger insertIndex = [order indexOfObject:@(1)];\n"
+                 "    if (insertIndex != NSNotFound)\n"
+                 "        [mutableOrder insertObject:@(YTLiteSection) atIndex:insertIndex + 1];")
+          new = ("    NSUInteger insertIndex = [order indexOfObject:@(1)];\n"
+                 "    if (insertIndex == NSNotFound) insertIndex = 0;\n"
+                 "    NSUInteger target = MIN(insertIndex + 1, [mutableOrder count]);\n"
+                 "    [mutableOrder insertObject:@(YTLiteSection) atIndex:target];")
+          if old not in src:
+              raise SystemExit("Settings.x patch target not found; source may have changed")
+          p.write_text(src.replace(old, new))
+          print("Patched Settings.x: YTLite section now inserts unconditionally")
+          PY
 
       - name: Install roothide stub headers
         run: |
